@@ -25,14 +25,16 @@ type StoreCredit struct {
 
 // StoreCreditTransaction is a Store Credit object.
 type StoreCreditTransaction struct {
-	ID        *string  `json:"id"`
-	Amount    *float64 `json:"amount"`
-	Type      *string  `json:"type"`
-	Notes     *string  `json:"notes"`
-	UserID    *string  `json:"user_id"`
-	SaleID    *string  `json:"sale_id"`
-	ClientID  *string  `json:"client_id"`
-	CreatedAt *string  `json:"created_at"`
+	ID           *string `json:"id,omitempty"`
+	CustomerCode string  `json:"-"`
+	CustomerID   *string `json:"-"`
+	Amount       float64 `json:"amount"`
+	Type         string  `json:"type"`
+	Notes        *string `json:"notes"`
+	UserID       *string `json:"user_id"`
+	SaleID       *string `json:"sale_id,omitempty"`
+	ClientID     *string `json:"client_id,omitempty"`
+	CreatedAt    *string `json:"created_at,omitempty"`
 }
 
 // StoreCredits gets all Store Credit data from a store.
@@ -41,7 +43,7 @@ func (c Client) StoreCredits() ([]StoreCredit, error) {
 	storecredits := []StoreCredit{}
 
 	// Here we get the first page.
-	data, lastID, err := ResourcePageFlake("", c.DomainPrefix, c.Token, "store_credits")
+	data, lastID, err := c.ResourcePageFlake("", "GET", "store_credits")
 	if err != nil {
 		return []StoreCredit{}, fmt.Errorf("Failed to retrieve a page of data %v", err)
 	}
@@ -54,6 +56,8 @@ func (c Client) StoreCredits() ([]StoreCredit, error) {
 		return []StoreCredit{}, err
 	}
 
+	fmt.Printf(string(data))
+
 	// Append page to list.
 	storecredits = append(storecredits, payload.Data...)
 
@@ -62,7 +66,7 @@ func (c Client) StoreCredits() ([]StoreCredit, error) {
 		payload = StoreCreditPayload{}
 
 		// Continue grabbing pages until we receive an empty one.
-		data, lastID, err = ResourcePageFlake(lastID, c.DomainPrefix, c.Token, "store_credits")
+		data, lastID, err = c.ResourcePageFlake(lastID, "GET", "store_credits")
 		if err != nil {
 			return nil, err
 		}
@@ -72,7 +76,7 @@ func (c Client) StoreCredits() ([]StoreCredit, error) {
 			return []StoreCredit{}, err
 		}
 
-		// Last page will always return a gift card from the previous payload, removes the last gift card.
+		// Last page will always return a Store Credit from the previous payload, removes the last Store Credit.
 		if len(payload.Data) > 1 {
 			storecredits = append(storecredits, payload.Data...)
 		}
