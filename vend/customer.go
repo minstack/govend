@@ -6,6 +6,11 @@ import (
 	"log"
 )
 
+// CustomerSearchResponse is a data object to hold Customer
+type CustomerSearchResponse struct {
+	Data []*Customer `json:"data,omitempty"`
+}
+
 // Customer is a customer object.
 type Customer struct {
 	ID               *string  `json:"id,omitempty"`
