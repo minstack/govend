@@ -130,16 +130,23 @@ type ProductUpload struct {
 func (c Client) Products() ([]Product, map[string]Product, error) {
 
 	productMap := make(map[string]Product)
-	var products, page []Product
-	var data []byte
+	products := []Product{}
+	page := []Product{}
+	data := []byte{}
 	var v int64
 
 	// v is a version that is used to get products by page.
 	// Here we get the first page.
-	data, v, err := ResourcePage(0, c.DomainPrefix, c.Token, "products")
+	data, v, err := c.ResourcePage(0, "GET", "products")
+	if err != nil {
+		fmt.Println(err)
+	}
 
-	// Unmarshal payload into sales object.
+	// Unmarshal payload into product object.
 	err = json.Unmarshal(data, &page)
+	if err != nil {
+		fmt.Println(err)
+	}
 
 	products = append(products, page...)
 
@@ -147,9 +154,9 @@ func (c Client) Products() ([]Product, map[string]Product, error) {
 		page = []Product{}
 
 		// Continue grabbing pages until we receive an empty one.
-		data, v, err = ResourcePage(v, c.DomainPrefix, c.Token, "products")
+		data, v, err = c.ResourcePage(v, "GET", "products")
 		if err != nil {
-			return nil, nil, err
+			fmt.Println(err)
 		}
 
 		// Unmarshal payload into product object.
@@ -172,4 +179,112 @@ func buildProductMap(products []Product) map[string]Product {
 	}
 
 	return productMap
+}
+
+// UploadImage uploads a single product image to Vend.
+func (c Client) UploadImage(imagePath string, product ProductUpload) error {
+	var err error
+
+	// This checks we actually have an image to post.
+	if len(product.ImageURL) > 0 {
+
+		// First grab and save the image from the URL.
+		imageURL := fmt.Sprintf("%s", product.ImageURL)
+
+		var body bytes.Buffer
+		// Start multipart writer.
+		writer := multipart.NewWriter(&body)
+
+		// Key "image" value is the image binary.
+		var part io.Writer
+		part, err = writer.CreateFormFile("image", imageURL)
+		if err != nil {
+			fmt.Printf("Error creating multipart form file")
+			return err
+		}
+
+		// Open image file.
+		var file *os.File
+		file, err = os.Open(imagePath)
+		if err != nil {
+			fmt.Printf("Error opening image file")
+			return err
+		}
+
+		// Make sure file is closed and then removed at end.
+		defer file.Close()
+		defer os.Remove(imageURL)
+
+		// Copying image binary to form file.
+		_, err = io.Copy(part, file)
+		if err != nil {
+			log.Fatalf("Error copying file for requst body: %s", err)
+			return err
+		}
+
+		err = writer.Close()
+		if err != nil {
+			fmt.Printf("Error closing writer")
+			return err
+		}
+
+		// Create the Vend URL to send our image to.
+		url := c.ImageUploadURLFactory(product.ID)
+
+		fmt.Printf("Uploading image to %v, ", product.ID)
+
+		req, _ := http.NewRequest("POST", url, &body)
+
+		// Headers
+		req.Header.Set("User-agent", "vend-image-upload")
+		req.Header.Set("Content-Type", writer.FormDataContentType())
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.Token))
+
+		client := &http.Client{}
+
+		// Make the request.
+		var attempt int
+		var res *http.Response
+		for {
+			time.Sleep(time.Second)
+			res, err = client.Do(req)
+			// Catch error.
+			if err != nil || !ResponseCheck(res.StatusCode) {
+				fmt.Printf("Error performing request: %s", res.Status)
+				// Delays between attempts will be exponentially longer each time.
+				attempt++
+				delay := BackoffDuration(attempt)
+				time.Sleep(delay)
+			} else {
+				// Ensure that image file is removed after it's uploaded.
+				os.Remove(imagePath)
+				break
+			}
+		}
+
+		// Make sure response body is closed at end.
+		defer res.Body.Close()
+
+		var resBody []byte
+		resBody, err = ioutil.ReadAll(res.Body)
+		if err != nil {
+			fmt.Printf("Error reading response body")
+			return err
+		}
+
+		// Unmarshal JSON response into our respone struct.
+		// from this we can find info about the image status.
+		response := ImageUpload{}
+		err = json.Unmarshal(resBody, &response)
+		if err != nil {
+			fmt.Printf("Error unmarhsalling response body")
+			return err
+		}
+
+		payload := response.Data
+
+		fmt.Printf("image created at Position: %v\n\n", *payload.Position)
+
+	}
+	return err
 }
