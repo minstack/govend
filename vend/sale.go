@@ -7,6 +7,11 @@ import (
 	"time"
 )
 
+// RegisterSale holds the Sale object
+type RegisterSales struct {
+	RegisterSales []Sale `json:"register_sales"`
+}
+
 // Sale is a basic sale object.
 type Sale struct {
 	ID              *string     `json:"id,omitempty"`
@@ -18,7 +23,7 @@ type Sale struct {
 	ReceiptNumber   *string     `json:"receipt_number,omitempty"`
 	InvoiceSequence *int64      `json:"invoice_sequence,omitempty"`
 	ReceiptSequence *int64      `json:"receipt_sequence,omitempty"`
-	Status          *string     `json:"status,omitempty"`
+	Status          *string      `json:"status,omitempty"`
 	Note            *string     `json:"note,omitempty"`
 	ShortCode       *string     `json:"short_code,omitempty"`
 	ReturnFor       *string     `json:"return_for,omitempty"`
@@ -31,7 +36,7 @@ type Sale struct {
 	TotalTax        *float64    `json:"total_tax,omitempty"`
 	LineItems       *[]LineItem `json:"line_items,omitempty"`
 	Payments        *[]Payment  `json:"payments,omitempty"`
-	Taxes           *[]Tax      `json:"taxes,omitempty"`
+	Taxes           *[]SaleTax  `json:"taxes,omitempty"`
 	VersionNumber   *int64      `json:"version,omitempty"`
 }
 
@@ -84,8 +89,8 @@ type Payment struct {
 	Amount                *float64   `json:"amount,omitempty"`
 }
 
-// Tax is tax on a sale.
-type Tax struct {
+// SaleTax is tax on a sale.
+type SaleTax struct {
 	ID     *string  `json:"id,omitempty"`
 	Amount *float64 `json:"amount,omitempty"`
 }
@@ -100,7 +105,7 @@ type Version struct {
 	Min int64 `json:"min"`
 }
 
-// Search for Sales based on Outlet and date range
+// SaleSearch for Sales based on Outlet and date range
 func (c Client) SalesSearch(dateFrom, dateTo, outletName string) ([]Sale, error) {
 
 	currentOffset := 0
@@ -121,7 +126,7 @@ func (c Client) SalesSearch(dateFrom, dateTo, outletName string) ([]Sale, error)
 	// Build the URL for the endpoint.
 	url := buildSearchURL(c.DomainPrefix, dateFrom, dateTo, outletID, currentOffset)
 
-	data, err := GetDataFromURL(c.Token, url)
+	data, err := c.MakeRequest("GET", url, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -145,7 +150,7 @@ func (c Client) SalesSearch(dateFrom, dateTo, outletName string) ([]Sale, error)
 		// Build the URL for the endpoint including the offset
 		url := buildSearchURL(c.DomainPrefix, dateFrom, dateTo, outletID, currentOffset)
 
-		data, err := GetDataFromURL(c.Token, url)
+		data, err := c.MakeRequest("GET", url, nil)
 		if err != nil {
 			return AllSales, err
 		}
