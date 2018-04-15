@@ -4,7 +4,7 @@ import (
 	"flag"
 	"strings"
 
-	"github.com/jackharrisonsherlock/go-vend/vend"
+	"github.com/jackharrisonsherlock/govend/vend"
 )
 
 var (
