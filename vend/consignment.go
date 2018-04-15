@@ -12,7 +12,7 @@ type ConsignmentPayload struct {
 	Version map[string]int64 `json:"version,omitempty"`
 }
 
-// Consignment is a register object.
+// Consignment is a ConsignmentPayload object.
 type Consignment struct {
 	ID              *string    `json:"id,omitempty"`
 	OutletID        *string    `json:"outlet_id,omitempty"`
@@ -31,9 +31,9 @@ func (c Client) Consignments() ([]Consignment, error) {
 
 	// v is a version that is used to objects by page.
 	// Here we get the first page.
-	data, v, err := ResourcePage(0, c.DomainPrefix, c.Token, "consignments")
+	data, v, err := c.ResourcePage(0, "GET", "consignments")
 
-	// Unmarshal payload into sales object.
+	// Unmarshal payload into Consignment object.
 	err = json.Unmarshal(data, &page)
 
 	// Append page to list.
@@ -44,7 +44,7 @@ func (c Client) Consignments() ([]Consignment, error) {
 		page = []Consignment{}
 
 		// Continue grabbing pages until we receive an empty one.
-		data, v, err = ResourcePage(v, c.DomainPrefix, c.Token, "consignments")
+		data, v, err = c.ResourcePage(v, "GET", "consignments")
 		if err != nil {
 			return nil, err
 		}

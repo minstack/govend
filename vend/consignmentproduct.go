@@ -13,7 +13,7 @@ type ConsignmentProductPayload struct {
 	Version map[string]int64     `json:"version,omitempty"`
 }
 
-// ConsignmentProduct ...
+// ConsignmentProduct is a ConsignmentProductPayload object.
 type ConsignmentProduct struct {
 	ProductID *string `json:"product_id,omitempty"`
 	SKU       *string `json:"product_sku,omitempty"`
@@ -24,7 +24,7 @@ type ConsignmentProduct struct {
 	DeletedAt *time.Time `json:"deleted_at,omitempty"`
 }
 
-// ConsignmentProducts gets all stock consignments and transfers from a store.
+// ConsignmentProducts gets all products inside Stock consignments and transfers from a store.
 func (c Client) ConsignmentProducts(consignments *[]Consignment) ([]ConsignmentProduct, map[string][]ConsignmentProduct, error) {
 
 	// var err error
@@ -45,9 +45,9 @@ func (c Client) ConsignmentProducts(consignments *[]Consignment) ([]ConsignmentP
 		}
 
 		// Build the URL for the consignment product page.
-		URL = urlFactory(0, c.DomainPrefix, *consignment.ID, "consignments")
+		URL = c.urlFactory(0, *consignment.ID, "consignments")
 
-		body, err := GetDataFromURL(c.Token, URL)
+		body, err := c.MakeRequest("GET", URL, nil)
 		if err != nil {
 			fmt.Printf("Error getting resource: %s", err)
 		}

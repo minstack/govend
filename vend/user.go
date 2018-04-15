@@ -30,7 +30,7 @@ func (c Client) Users() ([]User, error) {
 
 	// v is a version that is used to get registers by page.
 	// Here we get the first page.
-	data, v, err := ResourcePage(0, c.DomainPrefix, c.Token, "users")
+	data, v, err := c.ResourcePage(0, "GET", "users")
 
 	// Unmarshal payload into sales object.
 	err = json.Unmarshal(data, &page)
@@ -44,7 +44,7 @@ func (c Client) Users() ([]User, error) {
 		page = []User{}
 
 		// Continue grabbing pages until we receive an empty one.
-		data, v, err = ResourcePage(v, c.DomainPrefix, c.Token, "users")
+		data, v, err = c.ResourcePage(v, "GET", "users")
 		if err != nil {
 			return nil, err
 		}

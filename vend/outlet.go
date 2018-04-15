@@ -28,7 +28,7 @@ func (c Client) Outlets() ([]Outlet, map[string][]Outlet, error) {
 
 	// v is a version that is used to get outlets by page.
 	// Here we get the first page.
-	data, v, err := ResourcePage(0, c.DomainPrefix, c.Token, "outlets")
+	data, v, err := c.ResourcePage(0, "GET", "outlets")
 
 	// Unmarshal payload into sales object.
 	err = json.Unmarshal(data, &page)
@@ -42,7 +42,7 @@ func (c Client) Outlets() ([]Outlet, map[string][]Outlet, error) {
 		page = []Outlet{}
 
 		// Continue grabbing pages until we receive an empty one.
-		data, v, err = ResourcePage(v, c.DomainPrefix, c.Token, "outlets")
+		data, v, err = c.ResourcePage(v, "GET", "outlets")
 		if err != nil {
 			return nil, nil, err
 		}

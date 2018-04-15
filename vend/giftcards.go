@@ -40,7 +40,7 @@ func (c Client) GiftCards() ([]GiftCard, error) {
 	giftcards := []GiftCard{}
 
 	// Here we get the first page.
-	data, lastID, err := ResourcePageFlake("", c.DomainPrefix, c.Token, "balances/gift_cards")
+	data, lastID, err := c.ResourcePageFlake("", "GET", "balances/gift_cards")
 	if err != nil {
 		return []GiftCard{}, fmt.Errorf("Failed to retrieve a page of data %v", err)
 	}
@@ -61,7 +61,7 @@ func (c Client) GiftCards() ([]GiftCard, error) {
 		payload = GiftCardPayload{}
 
 		// Continue grabbing pages until we receive an empty one.
-		data, lastID, err = ResourcePageFlake(lastID, c.DomainPrefix, c.Token, "balances/gift_cards")
+		data, lastID, err = c.ResourcePageFlake(lastID, "GET", "balances/gift_cards")
 		if err != nil {
 			return nil, err
 		}
