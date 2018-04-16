@@ -2,6 +2,7 @@
 package vend
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -21,17 +22,17 @@ type Client struct {
 }
 
 // NewClient is called to pass authentication details to the manager.
-func NewClient(token, domainPrefix, tz string) Client {
-	return Client{token, domainPrefix, tz}
+func NewClient(Token, DomainPrefix, tz string) Client {
+	return Client{Token, DomainPrefix, tz}
 }
 
 // ResourcePage gets a single page of data from a 2.0 API resource using a version attribute.
-func ResourcePage(version int64, domainPrefix, key, resource string) ([]byte, int64, error) {
+func (c Client) ResourcePage(version int64, method, resource string) ([]byte, int64, error) {
 
 	// Build the URL for the resource page.
-	url := urlFactory(version, domainPrefix, "", resource)
+	url := c.urlFactory(version, "", resource)
 
-	body, err := GetDataFromURL(key, url)
+	body, err := c.MakeRequest(method, url, nil)
 	if err != nil {
 		fmt.Printf("Error getting resource: %s", err)
 	}
@@ -54,11 +55,12 @@ func ResourcePage(version int64, domainPrefix, key, resource string) ([]byte, in
 }
 
 // ResourcePageFlake gets a single page of data from a 2.0 API resource using a Flake ID attribute.
-func ResourcePageFlake(id, domainPrefix, key, resource string) ([]byte, string, error) {
+func (c Client) ResourcePageFlake(id, method, resource string) ([]byte, string, error) {
 
 	// Build the URL for the resource page.
-	url := urlFactoryFlake(id, domainPrefix, resource)
-	body, err := GetDataFromURL(key, url)
+	url := c.urlFactoryFlake(id, resource)
+	fmt.Println(url)
+	body, err := c.MakeRequest(method, url, nil)
 	if err != nil {
 		fmt.Printf("Error getting resource: %s", err)
 	}
@@ -72,7 +74,7 @@ func ResourcePageFlake(id, domainPrefix, key, resource string) ([]byte, string, 
 
 	items := payload["data"]
 
-	// Retrieve the last id from the payload to be used to request subsequent page
+	// Retrieve the last ID from the payload to be used to request subsequent page
 	// **TODO** Last ID will be stripped as its included in the previous payload, need a better way to handle this
 	i := items[(len(items) - 1)]
 	m := i.(map[string]interface{})
@@ -81,26 +83,40 @@ func ResourcePageFlake(id, domainPrefix, key, resource string) ([]byte, string, 
 	return body, lastID, err
 }
 
-// GetDataFromURL performs a get request on a Vend API endpoint.
-func GetDataFromURL(key, url string) ([]byte, error) {
+// NewRequest performs a request to a Vend API endpoint.
+func (c Client) NewRequest(method, url string, body interface{}) (*http.Request, error) {
 
-	client := &http.Client{}
+	// Convert body into JSON
+	b, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bb := bytes.NewReader(b)
 
-	req, err := http.NewRequest("GET", url, nil)
+	req, err := http.NewRequest(method, url, bb)
 	if err != nil {
 		fmt.Printf("\nError creating http request: %s", err)
 		return nil, err
 	}
 
-	// Using personal token authentication.
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", key))
-	req.Header.Set("User-Agent", "GO-Vend")
+	// Request Headers
+	req.Header.Set("User-Agent", "Vend CLI")
+	req.Header.Add("Content-Type", "application/json")
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.Token))
 
+	return req, nil
+}
+
+// Do request
+func (c Client) Do(req *http.Request) ([]byte, error) {
+
+	client := http.DefaultClient
 	// Doing the request.
 	var attempt int
-	var res *http.Response
+	var resp *http.Response
+	var err error
 	for {
-		res, err = client.Do(req)
+		resp, err = client.Do(req)
 		if err != nil {
 			fmt.Printf("\nError performing request: %s", err)
 			// Delays between attempts will be exponentially longer each time.
@@ -112,19 +128,32 @@ func GetDataFromURL(key, url string) ([]byte, error) {
 		}
 	}
 	// Make sure response body is closed at end.
-	defer res.Body.Close()
+	defer resp.Body.Close()
 
 	// Check for invalid status codes.
-	ResponseCheck(res.StatusCode)
+	ResponseCheck(resp.StatusCode)
 
 	// Read what we got back.
-	body, err := ioutil.ReadAll(res.Body)
+	response, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		fmt.Printf("\nError while reading response body: %s\n", err)
 		return nil, err
 	}
 
-	return body, err
+	return response, err
+}
+
+func (c Client) MakeRequest(method, url string, body interface{}) ([]byte, error) {
+	req, err := c.NewRequest(method, url, body)
+	if err != nil {
+		return nil, err
+	}
+	res, err := c.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	return res, nil
 }
 
 // ResponseCheck checks the HTTP status codes of responses.
@@ -161,7 +190,7 @@ func BackoffDuration(attempt int) time.Duration {
 }
 
 // urlFactory creates a Vend API 2.0 URL based on a resource.
-func urlFactory(version int64, domainPrefix, objectID, resource string) string {
+func (c Client) urlFactory(version int64, objectID, resource string) string {
 	// Page size is capped at ten thousand for all endpoints except sales which it is capped at five hundred.
 	const (
 		pageSize = 10000
@@ -169,7 +198,7 @@ func urlFactory(version int64, domainPrefix, objectID, resource string) string {
 	)
 
 	// Using 2.x Endpoint.
-	address := fmt.Sprintf("https://%s.vendhq.com/api/2.0/", domainPrefix)
+	address := fmt.Sprintf("https://%s.vendhq.com/api/2.0/", c.DomainPrefix)
 	query := url.Values{}
 	query.Add("after", fmt.Sprintf("%d", version))
 
@@ -183,7 +212,7 @@ func urlFactory(version int64, domainPrefix, objectID, resource string) string {
 }
 
 // urlFactoryFlake creates a Vend API 2.0 URL based on a resource.
-func urlFactoryFlake(id, domainPrefix, resource string) string {
+func (c Client) urlFactoryFlake(id, resource string) string {
 	// Page size is capped at ten thousand for all endpoints except sales which it is capped at five hundred.
 	const (
 		pageSize = 10000
@@ -191,7 +220,7 @@ func urlFactoryFlake(id, domainPrefix, resource string) string {
 	)
 
 	// Using 2.x Endpoint.
-	address := fmt.Sprintf("https://%s.vendhq.com/api/2.0/%s", domainPrefix, resource)
+	address := fmt.Sprintf("https://%s.vendhq.com/api/2.0/%s", c.DomainPrefix, resource)
 
 	// Iterate through pages using the ?before= FLAKE ID attribute.
 	if id != "" {
@@ -204,9 +233,9 @@ func urlFactoryFlake(id, domainPrefix, resource string) string {
 }
 
 // ImageUploadURLFactory creates the Vend URL for uploading an image.
-func ImageUploadURLFactory(domainPrefix, productID string) string {
+func (c Client) ImageUploadURLFactory(productID string) string {
 	url := fmt.Sprintf("https://%s.vendhq.com/api/2.0/products/%s/actions/image_upload",
-		domainPrefix, productID)
+		c.DomainPrefix, productID)
 	return url
 }
 
