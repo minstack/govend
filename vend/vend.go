@@ -59,7 +59,6 @@ func (c Client) ResourcePageFlake(id, method, resource string) ([]byte, string, 
 
 	// Build the URL for the resource page.
 	url := c.urlFactoryFlake(id, resource)
-	fmt.Println(url)
 	body, err := c.MakeRequest(method, url, nil)
 	if err != nil {
 		fmt.Printf("Error getting resource: %s", err)
