@@ -248,9 +248,8 @@ func (c Client) UploadImage(imagePath string, product ProductUpload) error {
 		for {
 			time.Sleep(time.Second)
 			res, err = client.Do(req)
-			// Catch error.
 			if err != nil || !ResponseCheck(res.StatusCode) {
-				fmt.Printf("Error performing request: %s", res.Status)
+				log.Fatalf("Couldnt source image: %s", res.Status)
 				// Delays between attempts will be exponentially longer each time.
 				attempt++
 				delay := BackoffDuration(attempt)
