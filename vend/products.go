@@ -2,23 +2,15 @@
 package vend
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
-	"io"
-	"io/ioutil"
-	"log"
-	"mime/multipart"
-	"net/http"
-	"os"
-	"time"
 )
 
 // Product is a basic product object
 type Product struct {
 	ID                      *string          `json:"id"`
 	SourceID                *string          `json:"source_id"`
-	VariantSourceID         *string          `json:"variant_source_id"`
+	VariantSourceID         *string          `json:"source_variant_id"`
 	Handle                  *string          `json:"handle"`
 	HasVariants             bool             `json:"has_variants"`
 	VariantParentID         *string          `json:"variant_parent_id"`
@@ -45,6 +37,7 @@ type Product struct {
 	SupplyPrice             *float64         `json:"supply_price"`
 	AccountCodePurchase     *string          `json:"account_code_purchase"`
 	AccountCodeSales        *string          `json:"account_code_sales"`
+	Source                  *string          `json:"source"`
 	TrackInventory          bool             `json:"track_inventory"`
 	Inventory               []Inventory      `json:"inventory"`
 	PriceBookEntries        []PriceBookEntry `json:"price_book_entries"`
@@ -136,7 +129,6 @@ func (c Client) Products() ([]Product, map[string]Product, error) {
 	var v int64
 
 	// v is a version that is used to get products by page.
-	// Here we get the first page.
 	data, v, err := c.ResourcePage(0, "GET", "products")
 	if err != nil {
 		fmt.Println(err)
@@ -179,111 +171,4 @@ func buildProductMap(products []Product) map[string]Product {
 	}
 
 	return productMap
-}
-
-// UploadImage uploads a single product image to Vend.
-func (c Client) UploadImage(imagePath string, product ProductUpload) error {
-	var err error
-
-	// This checks we actually have an image to post.
-	if len(product.ImageURL) > 0 {
-
-		// First grab and save the image from the URL.
-		imageURL := fmt.Sprintf("%s", product.ImageURL)
-
-		var body bytes.Buffer
-		// Start multipart writer.
-		writer := multipart.NewWriter(&body)
-
-		// Key "image" value is the image binary.
-		var part io.Writer
-		part, err = writer.CreateFormFile("image", imageURL)
-		if err != nil {
-			fmt.Printf("Error creating multipart form file")
-			return err
-		}
-
-		// Open image file.
-		var file *os.File
-		file, err = os.Open(imagePath)
-		if err != nil {
-			fmt.Printf("Error opening image file")
-			return err
-		}
-
-		// Make sure file is closed and then removed at end.
-		defer file.Close()
-		defer os.Remove(imageURL)
-
-		// Copying image binary to form file.
-		_, err = io.Copy(part, file)
-		if err != nil {
-			log.Fatalf("Error copying file for requst body: %s", err)
-			return err
-		}
-
-		err = writer.Close()
-		if err != nil {
-			fmt.Printf("Error closing writer")
-			return err
-		}
-
-		// Create the Vend URL to send our image to.
-		url := c.ImageUploadURLFactory(product.ID)
-
-		fmt.Printf("Uploading image to %v, ", product.ID)
-
-		req, _ := http.NewRequest("POST", url, &body)
-
-		// Headers
-		req.Header.Set("User-agent", "vend-image-upload")
-		req.Header.Set("Content-Type", writer.FormDataContentType())
-		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.Token))
-
-		client := &http.Client{}
-
-		// Make the request.
-		var attempt int
-		var res *http.Response
-		for {
-			time.Sleep(time.Second)
-			res, err = client.Do(req)
-			if err != nil || !ResponseCheck(res.StatusCode) {
-				log.Fatalf("Couldnt source image: %s", res.Status)
-				// Delays between attempts will be exponentially longer each time.
-				attempt++
-				delay := BackoffDuration(attempt)
-				time.Sleep(delay)
-			} else {
-				// Ensure that image file is removed after it's uploaded.
-				os.Remove(imagePath)
-				break
-			}
-		}
-
-		// Make sure response body is closed at end.
-		defer res.Body.Close()
-
-		var resBody []byte
-		resBody, err = ioutil.ReadAll(res.Body)
-		if err != nil {
-			fmt.Printf("Error reading response body")
-			return err
-		}
-
-		// Unmarshal JSON response into our respone struct.
-		// from this we can find info about the image status.
-		response := ImageUpload{}
-		err = json.Unmarshal(resBody, &response)
-		if err != nil {
-			fmt.Printf("Error unmarhsalling response body")
-			return err
-		}
-
-		payload := response.Data
-
-		fmt.Printf("image created at Position: %v\n\n", *payload.Position)
-
-	}
-	return err
 }
