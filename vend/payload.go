@@ -9,3 +9,10 @@ type Payload struct {
 	Data    json.RawMessage  `json:"data,omitempty"`
 	Version map[string]int64 `json:"version,omitempty"`
 }
+
+type Pagination struct {
+	Results  int64 `json:"results"`
+	Page     int64 `json:"page"`
+	PageSize int64 `json:"page_size"`
+	Pages    int64 `json:"pages"`
+}
