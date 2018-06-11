@@ -23,7 +23,7 @@ type Sale struct {
 	ReceiptNumber   *string     `json:"receipt_number,omitempty"`
 	InvoiceSequence *int64      `json:"invoice_sequence,omitempty"`
 	ReceiptSequence *int64      `json:"receipt_sequence,omitempty"`
-	Status          *string      `json:"status,omitempty"`
+	Status          *string     `json:"status,omitempty"`
 	Note            *string     `json:"note,omitempty"`
 	ShortCode       *string     `json:"short_code,omitempty"`
 	ReturnFor       *string     `json:"return_for,omitempty"`
@@ -106,22 +106,20 @@ type Version struct {
 }
 
 // SaleSearch for Sales based on Outlet and date range
-func (c Client) SalesSearch(dateFrom, dateTo, outletName string) ([]Sale, error) {
+func (c Client) SalesSearch(dateFrom, dateTo, outlet string) ([]Sale, error) {
 
 	currentOffset := 0
 	AllSales := []Sale{}
 	outletID := ""
 
-	/* Need to refactor into the sales ledger export tool.
-	 if outletName != "" {
-	 	oID, err := c.getOutlet(outletName)
-	 if err != nil {
-	 		fmt.Printf("\nError retrieving Outlets %s", err)
-	 		return AllSales, err
-	 	}
+	if outlet != "" {
+		oID, err := c.getOutlet(outlet)
+		if err != nil {
+			fmt.Printf("\nError retrieving Outlets %s", err)
+			return AllSales, err
+		}
 		outletID = oID
 	}
-	*/
 
 	// Build the URL for the endpoint.
 	url := buildSearchURL(c.DomainPrefix, dateFrom, dateTo, outletID, currentOffset)
@@ -170,6 +168,26 @@ func (c Client) SalesSearch(dateFrom, dateTo, outletName string) ([]Sale, error)
 		}
 	}
 	return AllSales, nil
+}
+
+// Get Outlet name by ID
+func (c Client) getOutlet(outlet string) (string, error) {
+	outlets, _, err := c.Outlets()
+	if err != nil {
+		return "", fmt.Errorf("No outlet with the given name: %v", err)
+	}
+
+	nameMap := map[string]string{}
+	for _, o := range outlets {
+		nameMap[*o.Name] = *o.ID
+	}
+
+	id, ok := nameMap[outlet]
+	if !ok {
+		return "", fmt.Errorf("No outlet with the given name")
+	}
+
+	return id, nil
 }
 
 // Build URL For Sales Legder Export
