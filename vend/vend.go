@@ -31,7 +31,6 @@ func (c Client) ResourcePage(version int64, method, resource string) ([]byte, in
 
 	// Build the URL for the resource page.
 	url := c.urlFactory(version, "", resource)
-
 	body, err := c.MakeRequest(method, url, nil)
 	if err != nil {
 		fmt.Printf("Error getting resource: %s", err)
@@ -59,10 +58,12 @@ func (c Client) ResourcePageFlake(id, method, resource string) ([]byte, string, 
 
 	// Build the URL for the resource page.
 	url := c.urlFactoryFlake(id, resource)
+
 	body, err := c.MakeRequest(method, url, nil)
 	if err != nil {
 		fmt.Printf("Error getting resource: %s", err)
 	}
+
 	// Decode the raw JSON.
 	payload := map[string][]interface{}{}
 	err = json.Unmarshal(body, &payload)
@@ -164,7 +165,7 @@ func ResponseCheck(statusCode int) bool {
 		fmt.Printf("\nAccess denied - check personal API token. Status: %d", statusCode)
 		os.Exit(0)
 	case 404:
-		fmt.Printf("\nURL not found - check domain prefix. Status: %d", statusCode)
+		fmt.Printf("\nURL not found - Status: %d", statusCode)
 		os.Exit(0)
 	case 429:
 		fmt.Printf("\nRate limited by the Vend API :S Status: %d", statusCode)

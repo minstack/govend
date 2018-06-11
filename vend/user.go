@@ -29,10 +29,9 @@ func (c Client) Users() ([]User, error) {
 	page := []User{}
 
 	// v is a version that is used to get registers by page.
-	// Here we get the first page.
 	data, v, err := c.ResourcePage(0, "GET", "users")
 
-	// Unmarshal payload into sales object.
+	// Unmarshal payload into object.
 	err = json.Unmarshal(data, &page)
 	if err != nil {
 		log.Printf("error while unmarshalling: %s", err)
@@ -49,10 +48,10 @@ func (c Client) Users() ([]User, error) {
 			return nil, err
 		}
 
-		// Unmarshal payload into register object.
+		// Unmarshal payload into object.
 		err = json.Unmarshal(data, &page)
 
-		// Append register page to list of registers.
+		// Append page to list of users.
 		users = append(users, page...)
 	}
 

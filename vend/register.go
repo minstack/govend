@@ -27,7 +27,6 @@ func (c Client) Registers() ([]Register, error) {
 	page := []Register{}
 
 	// v is a version that is used to get registers by page.
-	// Here we get the first page.
 	data, v, err := c.ResourcePage(0, "GET", "registers")
 
 	// Unmarshal payload into sales object.

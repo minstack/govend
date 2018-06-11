@@ -27,10 +27,9 @@ func (c Client) Outlets() ([]Outlet, map[string][]Outlet, error) {
 	page := []Outlet{}
 
 	// v is a version that is used to get outlets by page.
-	// Here we get the first page.
 	data, v, err := c.ResourcePage(0, "GET", "outlets")
 
-	// Unmarshal payload into sales object.
+	// Unmarshal payload into outlet object.
 	err = json.Unmarshal(data, &page)
 	if err != nil {
 		log.Printf("error while unmarshalling: %s", err)

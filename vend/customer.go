@@ -25,6 +25,7 @@ type Customer struct {
 	Gender           *string  `json:"gender,omitempty"`
 	DateOfBirth      *string  `json:"date_of_birth,omitempty"`
 	CompanyName      *string  `json:"company_name,omitempty"`
+	DoNotEmail       *bool    `json:"do_not_email,omitempty"`
 	Phone            *string  `json:"phone,omitempty"`
 	Mobile           *string  `json:"mobile,omitempty"`
 	Fax              *string  `json:"fax,omitempty"`
@@ -48,6 +49,7 @@ type Customer struct {
 	CustomField2     *string  `json:"custom_field_2,omitempty"`
 	CustomField3     *string  `json:"custom_field_3,omitempty"`
 	CustomField4     *string  `json:"custom_field_4,omitempty"`
+	DeletedAt        *string  `json:"deleted_at"`
 }
 
 // Customers grabs and collates all customers in pages of 10,000.
@@ -57,10 +59,9 @@ func (c Client) Customers() ([]Customer, error) {
 	page := []Customer{}
 
 	// v is a version that is used to get customers by page.
-	// Here we get the first page.
 	data, v, err := c.ResourcePage(0, "GET", "customers")
 
-	// Unmarshal payload into sales object.
+	// Unmarshal payload into customer object.
 	err = json.Unmarshal(data, &page)
 	if err != nil {
 		log.Printf("error while unmarshalling: %s", err)
