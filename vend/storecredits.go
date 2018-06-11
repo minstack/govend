@@ -15,11 +15,11 @@ type StoreCreditPayload struct {
 type StoreCredit struct {
 	ID                      *string                  `json:"id"`
 	CustomerID              *string                  `json:"customer_id"`
+	CustomerCode            *string                  `json:"customer_code"`
 	CreatedAt               *string                  `json:"created_at"`
-	Customer                *string                  `json:"customer"`
 	Balance                 *float64                 `json:"balance"`
-	TotalCreditIssued       *float64                 `json:"total_credit_issued"`
-	TotalCreditRedeemed     *float64                 `json:"total_credit_redeemed"`
+	TotalIssued             *float64                 `json:"total_credit_issued"`
+	TotalRedeemed           *float64                 `json:"total_credit_redeemed"`
 	StoreCreditTransactions []StoreCreditTransaction `json:"store_credit_transactions"`
 }
 
@@ -42,8 +42,8 @@ func (c Client) StoreCredits() ([]StoreCredit, error) {
 
 	storecredits := []StoreCredit{}
 
-	// Here we get the first page.
-	data, lastID, err := c.ResourcePageFlake("", "GET", "store_credits")
+	url := fmt.Sprintf("https://%v.vendhq.com/api/2.0/store_credits?page_size=1000", c.DomainPrefix)
+	data, err := c.MakeRequest("GET", url, nil)
 	if err != nil {
 		return []StoreCredit{}, fmt.Errorf("Failed to retrieve a page of data %v", err)
 	}
@@ -56,31 +56,8 @@ func (c Client) StoreCredits() ([]StoreCredit, error) {
 		return []StoreCredit{}, err
 	}
 
-	fmt.Printf(string(data))
-
 	// Append page to list.
 	storecredits = append(storecredits, payload.Data...)
-
-	// NOTE: Turns out empty response is 2bytes.
-	for len(payload.Data) > 1 {
-		payload = StoreCreditPayload{}
-
-		// Continue grabbing pages until we receive an empty one.
-		data, lastID, err = c.ResourcePageFlake(lastID, "GET", "store_credits")
-		if err != nil {
-			return nil, err
-		}
-
-		err = json.Unmarshal(data, &payload)
-		if err != nil {
-			return []StoreCredit{}, err
-		}
-
-		// Last page will always return a Store Credit from the previous payload, removes the last Store Credit.
-		if len(payload.Data) > 1 {
-			storecredits = append(storecredits, payload.Data...)
-		}
-	}
 
 	return storecredits, err
 }
