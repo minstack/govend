@@ -1,0 +1,80 @@
+{
+    "id": "9cd85b39-eff0-8152-11e6-ecd601f1e2da",
+    "outlet_id": "0624dbcd-ef95-11e6-e986-ecd5a64d7fa9",
+    "register_id": "0624dbcd-ef95-11e6-e986-ecd5a64ee59b",
+    "user_id": "0624dbcd-ef95-11e6-e986-ecd5a6503836",
+    "customer_id": "0624dbcd-ef95-11e6-e986-ecd5a6420648",
+    "invoice_number": "1",
+    "source": "USER",
+    "source_id": null,
+    "status": "CLOSED",
+    "note": "",
+    "short_code": "2dgox5",
+    "return_for": null,
+    "total_price": 43.48,
+    "total_tax": 6.52,
+    "total_loyalty": 0.00000,
+    "created_at": "2017-02-07T01:38:03+00:00",
+    "updated_at": "2017-02-07T01:38:03+00:00",
+    "sale_date": "2017-02-07T01:37:58+00:00",
+    "deleted_at": null,
+    "line_items": [{
+        "id": "9cd85b39-eff0-8152-11e6-ecd6075bb07d",
+        "product_id": "0624dbcd-ef13-11e6-e986-ecd5a6bd5f46",
+        "tax_id": "0624dbcd-ef95-11e6-e986-ecd5a645338e",
+        "discount_total": 0.0000000000,
+        "discount": 0.00000,
+        "price_total": 43.4782600000,
+        "price": 43.47826,
+        "cost_total": 10.0000000000,
+        "cost": 10.00000,
+        "tax_total": 6.5217400000,
+        "tax": 6.52174,
+        "quantity": 1.00000,
+        "loyalty_value": 0.00000,
+        "note": null,
+        "price_set": false,
+        "status": "CONFIRMED",
+        "sequence": 0,
+        "tax_components": [{
+            "rate_id": "a64cab6b-ecd5-11e6-8986-0624dbcdef95",
+            "total_tax": 6.52174
+        }],
+        "promotions": [
+
+        ],
+        "unit_cost": 10.00000,
+        "unit_discount": 0.00000,
+        "unit_loyalty_value": 0.00000,
+        "unit_price": 43.47826,
+        "unit_tax": 6.52174,
+        "total_cost": 10.0000000000,
+        "total_discount": 0.0000000000,
+        "total_loyalty_value": 0.0000000000,
+        "total_price": 43.4782600000,
+        "total_tax": 6.5217400000,
+        "is_return": false
+    }],
+    "payments": [{
+        "id": "9cd85b39-eff0-8152-11e6-ecd60e250e1e",
+        "register_id": "0624dbcd-ef95-11e6-e986-ecd5a64ee59b",
+        "outlet_id": "0624dbcd-ef95-11e6-e986-ecd5a64d7fa9",
+        "retailer_payment_type_id": "0624dbcd-ef95-11e6-e986-ecd5a64f97d5",
+        "payment_type_id": "1",
+        "name": "Cash",
+        "amount": 50.00000,
+        "payment_date": "2017-02-07T01:37:58+00:00",
+        "deleted_at": null,
+        "external_attributes": [
+
+        ],
+        "source_id": null
+    }],
+    "version": 2809884045,
+    "receipt_number": "1",
+    "total_price_incl": 50.0000000000,
+    "taxes": [{
+        "amount": 6.52174,
+        "id": "a64cab6b-ecd5-11e6-8986-0624dbcdef95"
+    }]
+}

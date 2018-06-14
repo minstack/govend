@@ -1,0 +1,35 @@
+{
+    "id": "0624dbcd-ef95-11e6-e986-ecd5a6503836",
+    "username": "sherlock@holmes.com",
+    "display_name": "Sherlock Holmes",
+    "email": "sherlock@holmes.com",
+    "email_verified_at": "2018-05-16T00:49:45+00:00",
+    "restricted_outlet_id": null,
+    "restricted_outlet_ids": [
+
+    ],
+    "account_type": "admin",
+    "switch_id": "usi:9c1d9b28270d",
+    "created_at": "2017-02-07T01:35:04+00:00",
+    "updated_at": "2018-05-16T00:49:45+00:00",
+    "deleted_at": null,
+    "seen_at": "2018-06-14T00:56:14+00:00",
+    "target_daily": null,
+    "target_weekly": null,
+    "target_monthly": null,
+    "version": 7007018919,
+    "enabled": null,
+    "permissions": null,
+    "is_primary_user": true,
+    "image_source": "https://secure.vendhq.com/images/placeholder/customer/no-image-white-ss.png",
+    "images": {
+        "ss": "https://secure.vendhq.com/images/placeholder/customer/no-image-white-ss.png",
+        "standard": "https://secure.vendhq.com/images/placeholder/customer/no-image-white-standard.png",
+        "st": "https://secure.vendhq.com/images/placeholder/customer/no-image-white-st.png",
+        "original": "https://secure.vendhq.com/images/placeholder/customer/no-image-white-original.png",
+        "thumb": "https://secure.vendhq.com/images/placeholder/customer/no-image-white-thumb.png",
+        "sl": "https://secure.vendhq.com/images/placeholder/customer/no-image-white-sl.png",
+        "sm": "https://secure.vendhq.com/images/placeholder/customer/no-image-white-sm.png"
+    },
+    "time_until_deletion": null
+}

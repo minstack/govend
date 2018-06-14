@@ -1,0 +1,42 @@
+{
+    "data": [{
+            "product_id": "0afa8de1-1413-11e7-edec-7bddfa31e73a",
+            "product_sku": null,
+            "count": "3.00000",
+            "received": "3.00000",
+            "cost": "0.00000",
+            "is_included": false,
+            "status": "RECEIVE_SUCCESS",
+            "created_at": "2018-05-24T23:04:07+00:00",
+            "updated_at": "2018-05-24T23:06:14+00:00",
+            "deleted_at": null,
+            "version": 7097704379
+        },
+        {
+            "product_id": "0afa8de1-1413-11e7-edec-7bddeb26ed02",
+            "product_sku": null,
+            "count": "15.00000",
+            "received": "15.00000",
+            "cost": "0.00000",
+            "is_included": false,
+            "status": "RECEIVE_SUCCESS",
+            "created_at": "2018-05-24T23:04:07+00:00",
+            "updated_at": "2018-05-24T23:06:14+00:00",
+            "deleted_at": null,
+            "version": 7097704391
+        },
+        {
+            "product_id": "0afa8de1-1413-11e7-edec-7fe0c70f6e43",
+            "product_sku": null,
+            "count": "3.00000",
+            "received": "3.00000",
+            "cost": "0.00000",
+            "is_included": false,
+            "status": "RECEIVE_SUCCESS",
+            "created_at": "2018-05-24T23:04:07+00:00",
+            "updated_at": "2018-05-24T23:06:14+00:00",
+            "deleted_at": null,
+            "version": 7097704392
+        }
+    ]
+}

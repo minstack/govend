@@ -1,0 +1,43 @@
+    {
+        "id": "0624dbcd-ef13-11e6-e986-ed89c9e5529a",
+        "name": "Shop 1",
+        "default_tax_id": "0624dbcd-ef95-11e6-e986-ecd5a645338e",
+        "currency": "NZD",
+        "currency_symbol": "$",
+        "display_prices": "inclusive",
+        "time_zone": "Pacific/Auckland",
+        "physical_address_1": "2 Nuffield stREET",
+        "physical_address_2": "",
+        "physical_suburb": "Newmarket",
+        "physical_city": "Auckland",
+        "physical_postcode": "1023",
+        "physical_state": "",
+        "physical_country_id": "NZ",
+        "deleted_at": null,
+        "version": 7134210894,
+        "attributes": [{
+                "key": "low_stock_warning",
+                "value": "1"
+            },
+            {
+                "key": "order_reference",
+                "value": "62"
+            },
+            {
+                "key": "order_reference_prefix",
+                "value": "156"
+            },
+            {
+                "key": "paypal_enabled",
+                "value": "0"
+            },
+            {
+                "key": "return_reference",
+                "value": "5"
+            },
+            {
+                "key": "return_reference_prefix",
+                "value": "SHO"
+            }
+        ]
+    }
