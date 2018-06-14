@@ -23,15 +23,13 @@ type Register struct {
 }
 
 // Registers gets all registers from a store.
-func (c Client) Registers() ([]Register, error) {
+func (c *Client) Registers() ([]Register, error) {
 
 	registers := []Register{}
 	page := []Register{}
 
 	// v is a version that is used to get registers by page.
 	data, v, err := c.ResourcePage(0, "GET", "registers")
-
-	// Unmarshal payload into sales object.
 	err = json.Unmarshal(data, &page)
 	if err != nil {
 		log.Printf("error while unmarshalling: %s", err)
@@ -39,19 +37,11 @@ func (c Client) Registers() ([]Register, error) {
 
 	registers = append(registers, page...)
 
+	// Use version to paginate through all pages
 	for len(page) > 0 {
 		page = []Register{}
-
-		// Continue grabbing pages until we receive an empty one.
 		data, v, err = c.ResourcePage(v, "GET", "registers")
-		if err != nil {
-			return nil, err
-		}
-
-		// Unmarshal payload into register object.
 		err = json.Unmarshal(data, &page)
-
-		// Append register page to list of registers.
 		registers = append(registers, page...)
 	}
 

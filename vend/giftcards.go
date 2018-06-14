@@ -35,17 +35,16 @@ type GiftCardTransaction struct {
 }
 
 // GiftCards gets all gift card data from a store.
-func (c Client) GiftCards() ([]GiftCard, error) {
+func (c *Client) GiftCards() ([]GiftCard, error) {
 
 	giftcards := []GiftCard{}
+	payload := GiftCardPayload{}
 
 	// Here we get the first page.
 	data, lastID, err := c.ResourcePageFlake("", "GET", "balances/gift_cards")
 	if err != nil {
 		return []GiftCard{}, fmt.Errorf("Failed to retrieve a page of data %v", err)
 	}
-
-	payload := GiftCardPayload{}
 
 	// Unmarshal payload into Gift Card object.
 	err = json.Unmarshal(data, &payload)

@@ -27,35 +27,25 @@ type Consignment struct {
 }
 
 // Consignments gets all stock consignments and transfers from a store.
-func (c Client) Consignments() ([]Consignment, error) {
+func (c *Client) Consignments() ([]Consignment, error) {
 
 	var consignments, page []Consignment
 	var v int64
 
 	// v is a version that is used to objects by page.
-	// Here we get the first page.
 	data, v, err := c.ResourcePage(0, "GET", "consignments")
-
-	// Unmarshal payload into Consignment object.
 	err = json.Unmarshal(data, &page)
+	if err != nil {
+		log.Printf("error while unmarshalling: %s", err)
+	}
 
-	// Append page to list.
 	consignments = append(consignments, page...)
 
-	// NOTE: Turns out empty response is 2bytes.
+	// Use version to paginate through all pages
 	for len(data) > 2 {
 		page = []Consignment{}
-
-		// Continue grabbing pages until we receive an empty one.
 		data, v, err = c.ResourcePage(v, "GET", "consignments")
-		if err != nil {
-			return nil, err
-		}
-
-		// Unmarshal payload into sales object.
 		err = json.Unmarshal(data, &page)
-
-		// Append page to list.
 		consignments = append(consignments, page...)
 	}
 

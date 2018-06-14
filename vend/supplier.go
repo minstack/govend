@@ -50,16 +50,14 @@ type Contact struct {
 }
 
 // Suppliers gets all Suppliers from a store.
-func (c Client) Suppliers() ([]SupplierBase, error) {
+func (c *Client) Suppliers() ([]SupplierBase, error) {
 
 	suppliers := []SupplierBase{}
 
 	data, more, p, err := c.Pages("api/supplier", 0)
-
 	suppliers = append(suppliers, data...)
 
 	for more {
-
 		// Continue grabbing pages until we receive an empty one.
 		data, more, p, err = c.Pages("api/supplier", p)
 		if err != nil {

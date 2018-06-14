@@ -2,9 +2,8 @@ A Go Library for Vend
 ========
 
 This is not a standalone app, but a library to work in conjunction with other apps, like:
-- [Vend CLI](https://github.com/jackharrisonsherlock/vend-cli)
+- [Vend CLI](https://github.com/vend/vend-cli)
 - [Sales Ledger export tool](https://github.com/jackharrisonsherlock/vend-sales-export)
-- [Customer export tool](https://github.com/jackharrisonsherlock/vend-customer-export)
 
 Please use the above as an example of how to use the library.
 

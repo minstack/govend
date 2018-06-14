@@ -55,15 +55,13 @@ type Customer struct {
 }
 
 // Customers grabs and collates all customers in pages of 10,000.
-func (c Client) Customers() ([]Customer, error) {
+func (c *Client) Customers() ([]Customer, error) {
 
 	customers := []Customer{}
 	page := []Customer{}
 
 	// v is a version that is used to get customers by page.
 	data, v, err := c.ResourcePage(0, "GET", "customers")
-
-	// Unmarshal payload into customer object.
 	err = json.Unmarshal(data, &page)
 	if err != nil {
 		log.Printf("error while unmarshalling: %s", err)
@@ -71,21 +69,19 @@ func (c Client) Customers() ([]Customer, error) {
 
 	customers = append(customers, page...)
 
+	// Use version to paginate through all pages
 	for len(page) > 0 {
 		page = []Customer{}
-
-		// Continue grabbing pages until we receive an empty one.
 		data, v, err = c.ResourcePage(v, "GET", "customers")
-		if err != nil {
-			return nil, err
-		}
-
-		// Unmarshal payload into customer object.
 		err = json.Unmarshal(data, &page)
-
-		// Append customer page to list of customers.
 		customers = append(customers, page...)
 	}
 
 	return customers, err
 }
+
+// func (c *Client) Customer(id string) (Customer, error) {
+// 	url := fmt.Sprintf("customer/%v", id)
+// 	customer, err := c.MakeRequest("GET", url, nil)
+// 	return customer, err
+// }

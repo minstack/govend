@@ -122,7 +122,7 @@ type ProductUpload struct {
 }
 
 // Products grabs and collates all products in pages of 10,000.
-func (c Client) Products() ([]Product, map[string]Product, error) {
+func (c *Client) Products() ([]Product, map[string]Product, error) {
 
 	productMap := make(map[string]Product)
 	products := []Product{}
@@ -132,31 +132,18 @@ func (c Client) Products() ([]Product, map[string]Product, error) {
 
 	// v is a version that is used to get products by page.
 	data, v, err := c.ResourcePage(0, "GET", "products")
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	// Unmarshal payload into product object.
 	err = json.Unmarshal(data, &page)
 	if err != nil {
-		fmt.Println(err)
+		log.Printf("error while unmarshalling: %s", err)
 	}
 
 	products = append(products, page...)
 
+	// Use version to paginate through all pages
 	for len(page) > 0 {
 		page = []Product{}
-
-		// Continue grabbing pages until we receive an empty one.
 		data, v, err = c.ResourcePage(v, "GET", "products")
-		if err != nil {
-			fmt.Println(err)
-		}
-
-		// Unmarshal payload into product object.
 		err = json.Unmarshal(data, &page)
-
-		// Append page to list.
 		products = append(products, page...)
 	}
 

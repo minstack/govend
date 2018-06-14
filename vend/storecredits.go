@@ -38,7 +38,7 @@ type StoreCreditTransaction struct {
 }
 
 // StoreCredits gets all Store Credit data from a store.
-func (c Client) StoreCredits() ([]StoreCredit, error) {
+func (c *Client) StoreCredits() ([]StoreCredit, error) {
 
 	storecredits := []StoreCredit{}
 

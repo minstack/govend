@@ -27,7 +27,7 @@ type ConsignmentProduct struct {
 }
 
 // ConsignmentProducts gets all products inside Stock consignments and transfers from a store.
-func (c Client) ConsignmentProducts(consignments *[]Consignment) ([]ConsignmentProduct, map[string][]ConsignmentProduct, error) {
+func (c *Client) ConsignmentProducts(consignments *[]Consignment) ([]ConsignmentProduct, map[string][]ConsignmentProduct, error) {
 
 	// var err error
 	// var data response.Data
