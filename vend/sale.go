@@ -107,12 +107,13 @@ type Version struct {
 }
 
 // SaleSearch for Sales based on Outlet and date range
-func (c Client) SalesSearch(dateFrom, dateTo, outlet string) ([]Sale, error) {
+func (c *Client) SalesSearch(dateFrom, dateTo, outlet string) ([]Sale, error) {
 
 	currentOffset := 0
 	AllSales := []Sale{}
 	outletID := ""
 
+	// Get outlet ID by name
 	if outlet != "" {
 		oID, err := c.getOutlet(outlet)
 		if err != nil {
@@ -124,7 +125,6 @@ func (c Client) SalesSearch(dateFrom, dateTo, outlet string) ([]Sale, error) {
 
 	// Build the URL for the endpoint.
 	url := buildSearchURL(c.DomainPrefix, dateFrom, dateTo, outletID, currentOffset)
-
 	data, err := c.MakeRequest("GET", url, nil)
 	if err != nil {
 		return nil, err

@@ -23,15 +23,13 @@ type Outlet struct {
 }
 
 // Outlets gets all outlets from a store.
-func (c Client) Outlets() ([]Outlet, map[string][]Outlet, error) {
+func (c *Client) Outlets() ([]Outlet, map[string][]Outlet, error) {
 
 	outlets := []Outlet{}
 	page := []Outlet{}
 
 	// v is a version that is used to get outlets by page.
 	data, v, err := c.ResourcePage(0, "GET", "outlets")
-
-	// Unmarshal payload into outlet object.
 	err = json.Unmarshal(data, &page)
 	if err != nil {
 		log.Printf("error while unmarshalling: %s", err)
@@ -39,19 +37,11 @@ func (c Client) Outlets() ([]Outlet, map[string][]Outlet, error) {
 
 	outlets = append(outlets, page...)
 
+	// Use version to paginate through all pages
 	for len(page) > 0 {
 		page = []Outlet{}
-
-		// Continue grabbing pages until we receive an empty one.
 		data, v, err = c.ResourcePage(v, "GET", "outlets")
-		if err != nil {
-			return nil, nil, err
-		}
-
-		// Unmarshal payload into outlet object.
 		err = json.Unmarshal(data, &page)
-
-		// Append outlet page to list of outlets.
 		outlets = append(outlets, page...)
 	}
 

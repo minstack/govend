@@ -25,15 +25,13 @@ type User struct {
 }
 
 // Users gets all users from a store.
-func (c Client) Users() ([]User, error) {
+func (c *Client) Users() ([]User, error) {
 
 	users := []User{}
 	page := []User{}
 
 	// v is a version that is used to get registers by page.
 	data, v, err := c.ResourcePage(0, "GET", "users")
-
-	// Unmarshal payload into object.
 	err = json.Unmarshal(data, &page)
 	if err != nil {
 		log.Printf("error while unmarshalling: %s", err)
@@ -41,19 +39,11 @@ func (c Client) Users() ([]User, error) {
 
 	users = append(users, page...)
 
+	// Use version to paginate through all pages
 	for len(page) > 0 {
 		page = []User{}
-
-		// Continue grabbing pages until we receive an empty one.
 		data, v, err = c.ResourcePage(v, "GET", "users")
-		if err != nil {
-			return nil, err
-		}
-
-		// Unmarshal payload into object.
 		err = json.Unmarshal(data, &page)
-
-		// Append page to list of users.
 		users = append(users, page...)
 	}
 

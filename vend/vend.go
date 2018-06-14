@@ -26,65 +26,8 @@ func NewClient(Token, DomainPrefix, tz string) Client {
 	return Client{Token, DomainPrefix, tz}
 }
 
-// ResourcePage gets a single page of data from a 2.0 API resource using a version attribute.
-func (c Client) ResourcePage(version int64, method, resource string) ([]byte, int64, error) {
-
-	// Build the URL for the resource page.
-	url := c.urlFactory(version, "", resource)
-	body, err := c.MakeRequest(method, url, nil)
-	if err != nil {
-		fmt.Printf("Error getting resource: %s", err)
-	}
-
-	// Decode the raw JSON.
-	response := Payload{}
-	err = json.Unmarshal(body, &response)
-	if err != nil {
-		fmt.Printf("\nError unmarshalling payload: %s", err)
-		return nil, 0, err
-	}
-
-	// Data is the resource body.
-	data := response.Data
-
-	// Version contains the maximum version number of the resources.
-	version = response.Version["max"]
-
-	return data, version, err
-}
-
-// ResourcePageFlake gets a single page of data from a 2.0 API resource using a Flake ID attribute.
-func (c Client) ResourcePageFlake(id, method, resource string) ([]byte, string, error) {
-
-	// Build the URL for the resource page.
-	url := c.urlFactoryFlake(id, resource)
-
-	body, err := c.MakeRequest(method, url, nil)
-	if err != nil {
-		fmt.Printf("Error getting resource: %s", err)
-	}
-
-	// Decode the raw JSON.
-	payload := map[string][]interface{}{}
-	err = json.Unmarshal(body, &payload)
-	if err != nil {
-		fmt.Printf("\nError unmarshalling payload: %s", err)
-		return nil, "", err
-	}
-
-	items := payload["data"]
-
-	// Retrieve the last ID from the payload to be used to request subsequent page
-	// **TODO** Last ID will be stripped as its included in the previous payload, need a better way to handle this
-	i := items[(len(items) - 1)]
-	m := i.(map[string]interface{})
-	lastID := m["id"].(string)
-
-	return body, lastID, err
-}
-
 // NewRequest performs a request to a Vend API endpoint.
-func (c Client) NewRequest(method, url string, body interface{}) (*http.Request, error) {
+func (c *Client) NewRequest(method, url string, body interface{}) (*http.Request, error) {
 
 	// Convert body into JSON
 	b, err := json.Marshal(body)
@@ -108,10 +51,9 @@ func (c Client) NewRequest(method, url string, body interface{}) (*http.Request,
 }
 
 // Do request
-func (c Client) Do(req *http.Request) ([]byte, error) {
+func (c *Client) Do(req *http.Request) ([]byte, error) {
 
 	client := http.DefaultClient
-	// Doing the request.
 	var attempt int
 	var resp *http.Response
 	var err error
@@ -127,20 +69,16 @@ func (c Client) Do(req *http.Request) ([]byte, error) {
 			break
 		}
 	}
-	// Make sure response body is closed at end.
+
 	defer resp.Body.Close()
-
-	// Check for invalid status codes.
 	ResponseCheck(resp.StatusCode)
-
-	// Read what we got back.
-	response, err := ioutil.ReadAll(resp.Body)
+	responseBody, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		fmt.Printf("\nError while reading response body: %s\n", err)
 		return nil, err
 	}
 
-	return response, err
+	return responseBody, err
 }
 
 func (c Client) MakeRequest(method, url string, body interface{}) ([]byte, error) {
@@ -154,6 +92,48 @@ func (c Client) MakeRequest(method, url string, body interface{}) ([]byte, error
 	}
 
 	return res, nil
+}
+
+// ResourcePage gets a single page of data from a 2.0 API resource using a version attribute.
+func (c *Client) ResourcePage(version int64, method, resource string) ([]byte, int64, error) {
+
+	url := c.urlFactory(version, "", resource)
+	body, err := c.MakeRequest(method, url, nil)
+	response := Payload{}
+	err = json.Unmarshal(body, &response)
+	if err != nil {
+		fmt.Printf("Error unmarshalling payload: %s", err)
+		return nil, 0, err
+	}
+
+	data := response.Data
+	version = response.Version["max"]
+
+	return data, version, err
+}
+
+// ResourcePageFlake gets a single page of data from a 2.0 API resource using a Flake ID attribute.
+func (c *Client) ResourcePageFlake(id, method, resource string) ([]byte, string, error) {
+
+	// Build the URL for the resource page.
+	url := c.urlFactoryFlake(id, resource)
+	body, err := c.MakeRequest(method, url, nil)
+	payload := map[string][]interface{}{}
+	err = json.Unmarshal(body, &payload)
+	if err != nil {
+		fmt.Printf("\nError unmarshalling payload: %s", err)
+		return nil, "", err
+	}
+
+	items := payload["data"]
+
+	// Retrieve the last ID from the payload to be used to request subsequent page
+	// **TODO** Last ID will be stripped as its included in the previous payload, need a better way to handle this
+	i := items[(len(items) - 1)]
+	m := i.(map[string]interface{})
+	lastID := m["id"].(string)
+
+	return body, lastID, err
 }
 
 // ResponseCheck checks the HTTP status codes of responses.
@@ -190,7 +170,7 @@ func BackoffDuration(attempt int) time.Duration {
 }
 
 // urlFactory creates a Vend API 2.0 URL based on a resource.
-func (c Client) urlFactory(version int64, objectID, resource string) string {
+func (c *Client) urlFactory(version int64, objectID, resource string) string {
 	// Page size is capped at ten thousand for all endpoints except sales which it is capped at five hundred.
 	const (
 		pageSize = 10000
@@ -212,7 +192,7 @@ func (c Client) urlFactory(version int64, objectID, resource string) string {
 }
 
 // urlFactoryFlake creates a Vend API 2.0 URL based on a resource.
-func (c Client) urlFactoryFlake(id, resource string) string {
+func (c *Client) urlFactoryFlake(id, resource string) string {
 	// Page size is capped at ten thousand for all endpoints except sales which it is capped at five hundred.
 	const (
 		pageSize = 10000
