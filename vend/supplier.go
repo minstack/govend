@@ -6,6 +6,8 @@ import (
 	"fmt"
 )
 
+// Vend API Docs: https://docs.vendhq.com/v0.9/reference#suppliers-1
+
 type SupplierCollectionResponse struct {
 	Suppliers  []SupplierBase `json:"suppliers"`
 	Pagination Pagination     `json:"pagination"`

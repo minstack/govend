@@ -7,6 +7,8 @@ import (
 	"time"
 )
 
+// Vend API Docs: https://docs.vendhq.com/v0.9/reference#outlets-2
+
 // OutletPayload contains outlet data and versioning info.
 type OutletPayload struct {
 	Data    []Outlet         `json:"data,omitempty"`

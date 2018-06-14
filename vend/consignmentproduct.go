@@ -7,6 +7,8 @@ import (
 	"time"
 )
 
+// Vend API Docs: https://docs.vendhq.com/v0.9/reference#consignments-2
+
 // ConsignmentProductPayload contains data and versioning info.
 type ConsignmentProductPayload struct {
 	Data    []ConsignmentProduct `json:"data,omitempty"`

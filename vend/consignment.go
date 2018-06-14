@@ -3,8 +3,11 @@ package vend
 
 import (
 	"encoding/json"
+	"log"
 	"time"
 )
+
+// Vend API Docs: https://docs.vendhq.com/v0.9/reference#consignments-2
 
 // ConsignmentPayload contains register data and versioning info.
 type ConsignmentPayload struct {

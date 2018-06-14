@@ -7,6 +7,8 @@ import (
 	"time"
 )
 
+// Vend API Docs: https://docs.vendhq.com/v0.9/reference#users-2
+
 // UserPayload contains sales data and versioning info.
 type UserPayload struct {
 	Data    []User           `json:"data,omitempty"`

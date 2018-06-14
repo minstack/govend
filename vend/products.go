@@ -3,8 +3,10 @@ package vend
 
 import (
 	"encoding/json"
-	"fmt"
+	"log"
 )
+
+// Vend API Docs: https://docs.vendhq.com/v0.9/reference#products-2
 
 // Product is a basic product object
 type Product struct {

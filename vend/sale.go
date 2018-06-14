@@ -1,4 +1,3 @@
-// Package vend handles interactions with the Vend API.
 package vend
 
 import (
@@ -6,6 +5,8 @@ import (
 	"fmt"
 	"time"
 )
+
+// Vend API Docs: https://docs.vendhq.com/v0.9/reference#sales
 
 // RegisterSale holds the Sale object
 type RegisterSales struct {

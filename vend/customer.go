@@ -6,6 +6,8 @@ import (
 	"log"
 )
 
+// Vend API Docs: https://docs.vendhq.com/v0.9/reference#customers-2
+
 // CustomerSearchResponse is a data object to hold Customer
 type CustomerSearchResponse struct {
 	Data []*Customer `json:"data,omitempty"`

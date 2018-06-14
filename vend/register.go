@@ -7,6 +7,8 @@ import (
 	"time"
 )
 
+// Vend API Docs: https://docs.vendhq.com/v0.9/reference#registers-2
+
 // RegisterPayload contains register data and versioning info.
 type RegisterPayload struct {
 	Data    []Register       `json:"data,omitempty"`
