@@ -100,6 +100,7 @@ func (c Client) Pages(resource string, page int64) ([]SupplierBase, bool, int64,
 	pages := response.Pagination.Pages
 	pg := response.Pagination.Page
 	more := pg != pages
+	pg++
 
 	return data, more, pg, err
 }
