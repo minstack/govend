@@ -23,7 +23,7 @@ type AuditLog struct {
 }
 
 // Auditlog grabs and collates all logs in pages of 1,000.
-func (c Client) AuditLog(dateFrom, dateTo string) ([]AuditLog, error) {
+func (c *Client) AuditLog(dateFrom, dateTo string) ([]AuditLog, error) {
 
 	currentOffset := 0
 	audit := []AuditLog{}
@@ -31,11 +31,6 @@ func (c Client) AuditLog(dateFrom, dateTo string) ([]AuditLog, error) {
 	// Build the URL for the endpoint.
 	url := fmt.Sprintf("https://%s.vendhq.com/api/2.0/auditlog_events?from=%s&to=%s&offset=%v", c.DomainPrefix, dateFrom, dateTo, currentOffset)
 	data, err := c.MakeRequest("GET", url, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	// Decode the raw JSON.
 	response := &AuditResponse{}
 	err = json.Unmarshal(data, response)
 	if err != nil {
@@ -53,15 +48,9 @@ func (c Client) AuditLog(dateFrom, dateTo string) ([]AuditLog, error) {
 		currentOffset += lastCount
 
 		// Build the URL for the endpoint including the offset
-		url := fmt.Sprintf("https://%s.vendhq.com/api/2.0/auditlog_events?date_from=%s&date_to=%s&offset=%v", c.DomainPrefix, dateFrom, dateTo, currentOffset)
+		url := fmt.Sprintf("https://%s.vendhq.com/api/2.0/auditlog_events?from=%s&to=%s&offset=%v", c.DomainPrefix, dateFrom, dateTo, currentOffset)
 		data, err := c.MakeRequest("GET", url, nil)
-		if err != nil {
-			return audit, err
-		}
-
-		// Decode the raw JSON.
 		response := &AuditResponse{}
-
 		err = json.Unmarshal(data, response)
 		if err != nil {
 			fmt.Printf("\nError unmarshalling Vend register payload: %s", err)
