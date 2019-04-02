@@ -54,12 +54,12 @@ func (c *Client) Suppliers() ([]SupplierBase, error) {
 
 	suppliers := []SupplierBase{}
 
-	data, more, p, err := c.Pages("api/supplier", 0)
+	data, more, nextPage, err := c.Pages("api/supplier", 0)
 	suppliers = append(suppliers, data...)
 
 	for more {
 		// Continue grabbing pages until we receive an empty one.
-		data, more, p, err = c.Pages("api/supplier", p)
+		data, more, nextPage, err = c.Pages("api/supplier", nextPage)
 		if err != nil {
 			return nil, err
 		}
@@ -80,7 +80,7 @@ func (c Client) Pages(resource string, page int64) ([]SupplierBase, bool, int64,
 		url = fmt.Sprintf("https://%s.vendhq.com/%s?page_size=200", c.DomainPrefix, resource)
 	}
 
-	body, err := c.MakeRequest("GET", url, nil)
+	body, _, err := c.MakeRequest("GET", url, nil)
 	if err != nil {
 		fmt.Printf("Error getting resource: %s", err)
 	}

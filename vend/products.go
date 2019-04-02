@@ -53,6 +53,10 @@ type Product struct {
 	DeletedAt               *string          `json:"deleted_at"`
 }
 
+type ProductPayload struct {
+	Data Product `json:"data"`
+}
+
 // Inventory houses product inventory object
 type Inventory struct {
 	OutletID     string `json:"outlet_id"`

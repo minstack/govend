@@ -49,7 +49,7 @@ func (c *Client) ConsignmentProducts(consignments *[]Consignment) ([]Consignment
 		// Build the URL for the consignment product page.
 		URL = c.urlFactory(0, *consignment.ID, "consignments")
 
-		body, err := c.MakeRequest("GET", URL, nil)
+		body, _, err := c.MakeRequest("GET", URL, nil)
 		if err != nil {
 			fmt.Printf("Error getting resource: %s", err)
 		}

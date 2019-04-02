@@ -30,7 +30,7 @@ func (c *Client) AuditLog(dateFrom, dateTo string) ([]AuditLog, error) {
 
 	// Build the URL for the endpoint.
 	url := fmt.Sprintf("https://%s.vendhq.com/api/2.0/auditlog_events?from=%s&to=%s&offset=%v", c.DomainPrefix, dateFrom, dateTo, currentOffset)
-	data, err := c.MakeRequest("GET", url, nil)
+	data, _, err := c.MakeRequest("GET", url, nil)
 	response := &AuditResponse{}
 	err = json.Unmarshal(data, response)
 	if err != nil {
@@ -49,7 +49,7 @@ func (c *Client) AuditLog(dateFrom, dateTo string) ([]AuditLog, error) {
 
 		// Build the URL for the endpoint including the offset
 		url := fmt.Sprintf("https://%s.vendhq.com/api/2.0/auditlog_events?from=%s&to=%s&offset=%v", c.DomainPrefix, dateFrom, dateTo, currentOffset)
-		data, err := c.MakeRequest("GET", url, nil)
+		data, _, err := c.MakeRequest("GET", url, nil)
 		response := &AuditResponse{}
 		err = json.Unmarshal(data, response)
 		if err != nil {

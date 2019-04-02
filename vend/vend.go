@@ -51,7 +51,7 @@ func (c *Client) NewRequest(method, url string, body interface{}) (*http.Request
 }
 
 // Do request
-func (c *Client) Do(req *http.Request) ([]byte, error) {
+func (c *Client) Do(req *http.Request) ([]byte, int, error) {
 
 	client := http.DefaultClient
 	var attempt int
@@ -71,34 +71,50 @@ func (c *Client) Do(req *http.Request) ([]byte, error) {
 	}
 
 	defer resp.Body.Close()
-	ResponseCheck(resp.StatusCode)
-	responseBody, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		fmt.Printf("\nError while reading response body: %s\n", err)
-		return nil, err
+	if ResponseCheck(resp.StatusCode) {
+		responseBody, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			fmt.Printf("\nError while reading response body: %s\n", err)
+			return nil, resp.StatusCode, err
+		}
+		return responseBody, resp.StatusCode, err
 	}
 
-	return responseBody, err
+	return nil, resp.StatusCode, err
 }
 
-func (c Client) MakeRequest(method, url string, body interface{}) ([]byte, error) {
+func (c Client) MakeRequest(method, url string, body interface{}) ([]byte, int, error) {
 	req, err := c.NewRequest(method, url, body)
 	if err != nil {
-		return nil, err
-	}
-	res, err := c.Do(req)
-	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
-	return res, nil
+	var res []byte
+	statusCode := 300
+	try := 1
+
+	// Inconsistant responses from data 2013/2014 retry if you we receieve anything less that 300 response
+	for statusCode > 299 {
+		req, err = c.NewRequest(method, url, body)
+		res, statusCode, err = c.Do(req)
+		try++
+		time.Sleep(1 * time.Second)
+		if try > 10 {
+			break
+		}
+	}
+	if err != nil {
+		return nil, statusCode, err
+	}
+
+	return res, statusCode, nil
 }
 
 // ResourcePage gets a single page of data from a 2.0 API resource using a version attribute.
 func (c *Client) ResourcePage(version int64, method, resource string) ([]byte, int64, error) {
 
 	url := c.urlFactory(version, "", resource)
-	body, err := c.MakeRequest(method, url, nil)
+	body, _, err := c.MakeRequest(method, url, nil)
 	response := Payload{}
 	err = json.Unmarshal(body, &response)
 	if err != nil {
@@ -117,7 +133,7 @@ func (c *Client) ResourcePageFlake(id, method, resource string) ([]byte, string,
 
 	// Build the URL for the resource page.
 	url := c.urlFactoryFlake(id, resource)
-	body, err := c.MakeRequest(method, url, nil)
+	body, _, err := c.MakeRequest(method, url, nil)
 	payload := map[string][]interface{}{}
 	err = json.Unmarshal(body, &payload)
 	if err != nil {
@@ -138,22 +154,19 @@ func (c *Client) ResourcePageFlake(id, method, resource string) ([]byte, string,
 
 // ResponseCheck checks the HTTP status codes of responses.
 func ResponseCheck(statusCode int) bool {
-	switch statusCode {
-	case 200, 201:
+	switch {
+	case statusCode < 300:
 		return true
-	case 401:
-		fmt.Printf("\nAccess denied - check personal API token. Status: %d", statusCode)
+	case statusCode == 401:
+		fmt.Printf("\nAccess denied - check API Token. Status: %d", statusCode)
 		os.Exit(0)
-	case 404:
+	case statusCode == 404:
 		fmt.Printf("\nURL not found - Status: %d", statusCode)
 		os.Exit(0)
-	case 429:
+	case statusCode == 429:
 		fmt.Printf("\nRate limited by the Vend API :S Status: %d", statusCode)
-	case 500:
+	case statusCode >= 500:
 		fmt.Printf("\nServer error. Status: %d", statusCode)
-	case 502:
-		fmt.Printf("\nServer received an invalid response :S Status: %d", statusCode)
-		os.Exit(0)
 	default:
 		fmt.Printf("\nGot an unknown status code - Google it. Status: %d", statusCode)
 	}

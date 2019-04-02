@@ -4,7 +4,6 @@ package vend
 import (
 	"encoding/json"
 	"log"
-	"time"
 )
 
 // Vend API Docs: https://docs.vendhq.com/v0.9/reference#users-2
@@ -17,11 +16,14 @@ type UserPayload struct {
 
 // User is a basic user object.
 type User struct {
-	ID          *string    `json:"id,omitempty"`
-	Username    *string    `json:"username,omitempty"`
-	DisplayName *string    `json:"display_name,omitempty"`
-	Email       *string    `json:"email,omitempty"`
-	DeletedAt   *time.Time `json:"deleted_at,omitempty"`
+	ID               *string `json:"id,omitempty"`
+	Username         *string `json:"username,omitempty"`
+	DisplayName      *string `json:"display_name,omitempty"`
+	AccountType      *string `json:"account_type,omitempty"`
+	Email            *string `json:"email,omitempty"`
+	RestrictedOutlet *string `json:"restricted_outlet_id,omitempty"`
+	CreatedAt        *string `json:"created_at,omitempty"`
+	DeletedAt        *string `json:"deleted_at,omitempty"`
 }
 
 // Users gets all users from a store.

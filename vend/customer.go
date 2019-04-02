@@ -42,10 +42,10 @@ type Customer struct {
 	PostalState      *string  `json:"postal_state,omitempty"`
 	CreatedAt        *string  `json:"created_at,omitempty"`
 	PostalPostcode   *string  `json:"postal_postcode,omitempty"`
-	PhysicalAddress1 *string  `json:"physical_address1,omitempty"`
-	PhysicalAddress2 *string  `json:"physical_address2,omitempty"`
-	PostalAddress1   *string  `json:"postal_address1,omitempty"`
-	PostalAddress2   *string  `json:"postal_address2,omitempty"`
+	PhysicalAddress1 *string  `json:"physical_address_1,omitempty"`
+	PhysicalAddress2 *string  `json:"physical_address_2,omitempty"`
+	PostalAddress1   *string  `json:"postal_address_1,omitempty"`
+	PostalAddress2   *string  `json:"postal_address_2,omitempty"`
 	PostalCountryID  *string  `json:"postal_country_id,omitempty"`
 	CustomField1     *string  `json:"custom_field_1,omitempty"`
 	CustomField2     *string  `json:"custom_field_2,omitempty"`
@@ -79,9 +79,3 @@ func (c *Client) Customers() ([]Customer, error) {
 
 	return customers, err
 }
-
-// func (c *Client) Customer(id string) (Customer, error) {
-// 	url := fmt.Sprintf("customer/%v", id)
-// 	customer, err := c.MakeRequest("GET", url, nil)
-// 	return customer, err
-// }
