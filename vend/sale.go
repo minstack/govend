@@ -2,7 +2,7 @@ package vend
 
 import (
 	"encoding/json"
-	"fmt"
+	"log"
 	"time"
 )
 
@@ -28,10 +28,10 @@ type Sale struct {
 	Note            *string     `json:"note,omitempty"`
 	ShortCode       *string     `json:"short_code,omitempty"`
 	ReturnFor       *string     `json:"return_for,omitempty"`
-	CreatedAt       *time.Time  `json:"created_at,omitempty"`
-	UpdatedAt       *time.Time  `json:"updated_at,omitempty"`
+	CreatedAt       *string     `json:"created_at,omitempty"`
+	UpdatedAt       *string     `json:"updated_at,omitempty"`
 	SaleDate        *string     `json:"sale_date,omitempty"`
-	DeletedAt       *time.Time  `json:"deleted_at,omitempty"`
+	DeletedAt       *string     `json:"deleted_at,omitempty"`
 	TotalPrice      *float64    `json:"total_price,omitempty"`
 	TotalLoyalty    *float64    `json:"total_loyalty,omitempty"`
 	TotalTax        *float64    `json:"total_tax,omitempty"`
@@ -106,96 +106,135 @@ type Version struct {
 	Min int64 `json:"min"`
 }
 
-// SaleSearch for Sales based on Outlet and date range
-func (c *Client) SalesSearch(dateFrom, dateTo, outlet string) ([]Sale, error) {
+// Sales grabs and collates all sales in pages of 10,000.
+func (c *Client) Sales() ([]Sale, error) {
 
-	currentOffset := 0
-	AllSales := []Sale{}
-	outletID := ""
+	sales := []Sale{}
+	page := []Sale{}
 
-	// Get outlet ID by name
-	if outlet != "" {
-		oID, err := c.getOutlet(outlet)
-		if err != nil {
-			fmt.Printf("\nError retrieving Outlets %s", err)
-			return AllSales, err
-		}
-		outletID = oID
-	}
-
-	// Build the URL for the endpoint.
-	url := buildSearchURL(c.DomainPrefix, dateFrom, dateTo, outletID, currentOffset)
-	data, err := c.MakeRequest("GET", url, nil)
+	// v is a version that is used to get customers by page.
+	data, v, err := c.ResourcePage(0, "GET", "sales")
+	err = json.Unmarshal(data, &page)
 	if err != nil {
-		return nil, err
+		log.Printf("error while unmarshalling: %s", err)
 	}
 
-	// Decode the raw JSON.
-	response := &SalesResponse{}
-	err = json.Unmarshal(data, response)
-	if err != nil {
-		fmt.Printf("\nError unmarshalling Vend register payload: %s", err)
-		return nil, err
+	sales = append(sales, page...)
+
+	// Use version to paginate through all pages
+	for len(page) > 0 {
+		page = []Sale{}
+		data, v, err = c.ResourcePage(v, "GET", "sales")
+		err = json.Unmarshal(data, &page)
+		sales = append(sales, page...)
 	}
 
-	// Set lastcount based on the response
-	lastCount := len(response.Data)
-	if lastCount > 0 {
-		AllSales = append(AllSales, response.Data...)
-	}
-
-	for lastCount > 0 {
-		currentOffset += lastCount
-		// Build the URL for the endpoint including the offset
-		url := buildSearchURL(c.DomainPrefix, dateFrom, dateTo, outletID, currentOffset)
-
-		data, err := c.MakeRequest("GET", url, nil)
-		if err != nil {
-			return AllSales, err
-		}
-
-		// Decode the raw JSON.
-		response := &SalesResponse{}
-
-		err = json.Unmarshal(data, response)
-		if err != nil {
-			fmt.Printf("\nError unmarshalling Vend register payload: %s", err)
-			return AllSales, err
-		}
-
-		lastCount = len(response.Data)
-		if lastCount > 0 {
-			AllSales = append(AllSales, response.Data...)
-		}
-	}
-	return AllSales, nil
+	return sales, err
 }
 
-// Get Outlet name by ID
-func (c Client) getOutlet(outlet string) (string, error) {
-	outlets, _, err := c.Outlets()
-	if err != nil {
-		return "", fmt.Errorf("No outlet with the given name: %v", err)
-	}
+// // SaleSearch for Sales based on Outlet and date range
+// func (c *Client) SalesSearch(dateFrom, dateTo, outlet string) ([]Sale, error) {
 
-	nameMap := map[string]string{}
-	for _, o := range outlets {
-		nameMap[*o.Name] = *o.ID
-	}
+// 	currentOffset := 0
+// 	AllSales := []Sale{}
+// 	outletID := ""
 
-	id, ok := nameMap[outlet]
-	if !ok {
-		return "", fmt.Errorf("No outlet with the given name")
-	}
+// 	// Get outlet ID by name
+// 	if outlet != "" {
+// 		oID, err := c.getOutlet(outlet)
+// 		if err != nil {
+// 			fmt.Printf("\nError retrieving Outlets %s", err)
+// 			return AllSales, err
+// 		}
+// 		outletID = oID
+// 	}
 
-	return id, nil
-}
+// 	// Build the URL for the endpoint.
+// 	url := buildSearchURL(c.DomainPrefix, dateFrom, dateTo, outletID, currentOffset)
+// 	data, statusCode, err := c.MakeRequest("GET", url, nil)
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-// Build URL For Sales Legder Export
-func buildSearchURL(domainPrefix, dateFrom, dateTo, outletID string, currentOffset int) string {
-	if outletID == "" {
-		return fmt.Sprintf("https://%s.vendhq.com/api/2.0/search?type=sales&date_from=%s&date_to=%s&offset=%v", domainPrefix, dateFrom, dateTo, currentOffset)
-	}
+// 	if statusCode > 299 {
+// 		return nil, fmt.Errorf("unexpected response status code for request to: %s", url)
+// 	}
 
-	return fmt.Sprintf("https://%s.vendhq.com/api/2.0/search?type=sales&date_from=%s&date_to=%s&outlet_id=%s&offset=%v", domainPrefix, dateFrom, dateTo, outletID, currentOffset)
-}
+// 	// Decode the raw JSON.
+// 	response := &SalesResponse{}
+// 	err = json.Unmarshal(data, response)
+// 	if err != nil {
+// 		fmt.Printf("\nError unmarshalling Vend register payload: %s", err)
+// 		return nil, err
+// 	}
+
+// 	// Set lastcount based on the response
+// 	lastCount := len(response.Data)
+// 	if lastCount > 0 {
+// 		AllSales = append(AllSales, response.Data...)
+// 	}
+
+// 	for lastCount > 0 {
+// 		currentOffset += lastCount
+// 		// Build the URL for the endpoint including the offset
+// 		url := buildSearchURL(c.DomainPrefix, dateFrom, dateTo, outletID, currentOffset)
+
+// 		data, statusCode, err := c.MakeRequest("GET", url, nil)
+// 		if err != nil {
+// 			return AllSales, err
+// 		}
+
+// 		if statusCode > 299 {
+// 			return nil, fmt.Errorf("Unexpected response status code")
+// 		}
+
+// 		// Decode the raw JSON.
+// 		response := &SalesResponse{}
+
+// 		err = json.Unmarshal(data, response)
+// 		if err != nil {
+// 			// fmt.Printf("\nError unmarshalling Vend register payload: %s", err)
+// 			log.Printf("error decoding response: %v", err)
+// 			if e, ok := err.(*json.SyntaxError); ok {
+// 				log.Printf("syntax error at byte offset %d", e.Offset)
+// 			}
+// 			log.Printf("response: %q", data)
+// 			return AllSales, err
+// 		}
+
+// 		lastCount = len(response.Data)
+// 		if lastCount > 0 {
+// 			AllSales = append(AllSales, response.Data...)
+// 		}
+// 	}
+// 	return AllSales, nil
+// }
+
+// // Get Outlet name by ID
+// func (c Client) getOutlet(outlet string) (string, error) {
+// 	outlets, _, err := c.Outlets()
+// 	if err != nil {
+// 		return "", fmt.Errorf("No outlet with the given name: %v", err)
+// 	}
+
+// 	nameMap := map[string]string{}
+// 	for _, o := range outlets {
+// 		nameMap[*o.Name] = *o.ID
+// 	}
+
+// 	id, ok := nameMap[outlet]
+// 	if !ok {
+// 		return "", fmt.Errorf("No outlet with the given name")
+// 	}
+
+// 	return id, nil
+// }
+
+// // Build URL For Sales Legder Export
+// func buildSearchURL(domainPrefix, dateFrom, dateTo, outletID string, currentOffset int) string {
+// 	if outletID == "" {
+// 		return fmt.Sprintf("https://%s.vendhq.com/api/2.0/search?type=sales&date_from=%s&date_to=%s&page_size=10000&offset=%v", domainPrefix, dateFrom, dateTo, currentOffset)
+// 	}
+
+// 	return fmt.Sprintf("https://%s.vendhq.com/api/2.0/search?type=sales&date_from=%s&date_to=%s&outlet_id=%s&page_size=10000&offset=%v", domainPrefix, dateFrom, dateTo, outletID, currentOffset)
+// }
