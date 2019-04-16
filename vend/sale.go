@@ -2,6 +2,7 @@ package vend
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"time"
 )
@@ -106,14 +107,23 @@ type Version struct {
 	Min int64 `json:"min"`
 }
 
-// Sales grabs and collates all sales in pages of 10,000.
+// Sales grabs all-time sales - version after 0
 func (c *Client) Sales() ([]Sale, error) {
+	return salesAfterVersion(0, c)
+}
 
+// SalesAfter grabs sales after the provided version
+func (c *Client) SalesAfter(version int64) ([]Sale, error) {
+	return salesAfterVersion(version, c)
+}
+
+// salesAfterVersion grabs sales after the specified version
+func salesAfterVersion(version int64, c *Client) ([]Sale, error) {
 	sales := []Sale{}
 	page := []Sale{}
 
 	// v is a version that is used to get customers by page.
-	data, v, err := c.ResourcePage(0, "GET", "sales")
+	data, v, err := c.ResourcePage(version, "GET", "sales")
 	err = json.Unmarshal(data, &page)
 	if err != nil {
 		log.Printf("error while unmarshalling: %s", err)
@@ -130,6 +140,51 @@ func (c *Client) Sales() ([]Sale, error) {
 	}
 
 	return sales, err
+}
+
+// GetStartVersion retrieves the version of the sale offset by a couple days
+// of the specified dateFrom.  Time object and string both needed from the calling
+// function
+func (c *Client) GetStartVersion(dateFrom time.Time, dateStr string) (int64, error) {
+	offSetTime := dateFrom.AddDate(0, 0, 2)
+
+	queryDateFrom := offSetTime.Format("2006-01-02T15:04:05Z")
+
+	//debug
+	// fmt.Println(queryDateFrom)
+
+	endpoint := fmt.Sprintf("https://%s.vendhq.com/api/2.0/search?type=sales&date_from=%s&page_size=1&order_direction=asc", c.DomainPrefix, queryDateFrom)
+
+	body, _, err := c.MakeRequest("GET", endpoint, nil)
+	if err != nil {
+		return 0, err
+	}
+
+	response := Payload{}
+
+	err = json.Unmarshal(body, &response)
+	if err != nil {
+		fmt.Printf("Error unmarshalling payload: %s", err)
+		return 0, err
+	}
+
+	data := response.Data
+
+	// no sale
+	if len(data) == 0 {
+		return 0, nil
+	}
+
+	//this will be a single sale, page_size=1
+	sales := []Sale{}
+	err = json.Unmarshal(data, &sales)
+	sales = append(sales, sales...)
+
+	sale := sales[0]
+
+	// fmt.Printf("In GetStartVersion: datefrom = %v, version = %d", dateFrom, *sale.VersionNumber)
+
+	return *sale.VersionNumber, err
 }
 
 // // SaleSearch for Sales based on Outlet and date range
