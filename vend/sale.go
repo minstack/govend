@@ -146,7 +146,7 @@ func salesAfterVersion(version int64, c *Client) ([]Sale, error) {
 // of the specified dateFrom.  Time object and string both needed from the calling
 // function
 func (c *Client) GetStartVersion(dateFrom time.Time, dateStr string) (int64, error) {
-	offSetTime := dateFrom.AddDate(0, 0, 2)
+	offSetTime := dateFrom.AddDate(0, 0, -7)
 
 	queryDateFrom := offSetTime.Format("2006-01-02T15:04:05Z")
 
